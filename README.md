@@ -224,7 +224,7 @@ See `DEVELOPMENT.md` for detailed debugging guide.
 
 ## 📚 Documentation
 
-- **DEVELOPMENT.md**: Development guide and debugging
+- **Development_guide.md**: Development guide and debugging
 - **Code comments**: Inline documentation in all modules
 
 ## 📝 Testing

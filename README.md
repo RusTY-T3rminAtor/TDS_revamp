@@ -79,19 +79,20 @@ Quiz Request → Flask API → Browser Fetch → LLM Analysis
 ## 📁 Project Structure
 
 ```
-TDS_1/
+TDS_revamp/
 ├── app.py                  # Flask API server
 ├── quiz_solver.py          # Main quiz solving logic
-├── browser_handler.py      # Headless Chrome management
-├── llm_handler.py          # OpenAI GPT integration
-├── data_processor.py       # Data processing & analysis
-├── prompts.py              # System/user prompts for form
+├── browser_handler.py      # Headless browser management
+├── llm_handler.py          # OpenAI LLM integration
+├── data_processor.py       # Data analysis utilities
+├── prompts.py              # System/user prompts
 ├── config.py               # Configuration management
-├── render.yaml             # Settings for render
-├── requirements.txt        # Python dependencies
+├── requirements.txt        # Dependencies
+├── .gitignore              # Git ignore rules
 ├── LICENSE                 # MIT License
-├── README.md               # This file
-└── DEVELOPMENT.md          # Development & debugging guide
+├── README.md               # Project documentation
+├── Project_summary.md      # Project Summary
+└── Development_guide.md    # This file
 ```
 
 ## 🔧 Configuration

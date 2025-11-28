@@ -104,7 +104,6 @@ TDS_revamp/
 | `STUDENT_EMAIL` | Your student email | `student@example.com` |
 | `SECRET_KEY` | Secret for authentication | `my-secret-key-123` |
 | `OPENAI_API_KEY` | OpenAI API key | `sk-...` |
-| `PORT` | Server port | `5000` |
 | `DEBUG` | Debug mode | `True` / `False` |
 
 ### System and User Prompts

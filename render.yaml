@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: tds-llm-quiz
+    name: TDS_revamp
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
@@ -15,3 +15,4 @@ services:
         sync: false
       - key: PORT
         value: 10000
+

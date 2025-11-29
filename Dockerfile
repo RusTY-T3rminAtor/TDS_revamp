@@ -27,6 +27,7 @@ RUN apt-get update \
     libasound2 \
     libpangocairo-1.0-0 \
     chromium \
+    chromium-driver \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

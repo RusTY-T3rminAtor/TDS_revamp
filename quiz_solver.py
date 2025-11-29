@@ -261,57 +261,57 @@ class QuizSolver:
         return data_context
     
     def _submit_answer(self, submit_url, quiz_url, answer):
-    """
-    Submit answer to the quiz endpoint.
-    Handles relative submit URLs like '/submit' by converting them to absolute URLs.
-    """
-
-    try:
-        # Fix the submit URL (this is where we fix "/submit")
+        """
+        Submit answer to the quiz endpoint.
+        Handles relative submit URLs like '/submit' by converting them to absolute URLs.
+        """
+    
         try:
-            absolute_submit = make_absolute_submit_url(quiz_url, submit_url)
-            logger.info(f"Resolved submit URL: {absolute_submit}")
-        except Exception as e:
-            logger.error(f"Failed to resolve submit URL '{submit_url}' — {e}")
-            return None
-
-        # Build payload
-        payload = {
-            "email": self.email,
-            "secret": self.secret,
-            "url": quiz_url,
-            "answer": answer
-        }
-
-        logger.info(f"Submitting to: {absolute_submit}")
-        logger.info(f"Payload: {json.dumps(payload, indent=2)}")
-
-        # Submit request
-        response = requests.post(
-            absolute_submit,
-            json=payload,
-            headers={'Content-Type': 'application/json'},
-            timeout=30
-        )
-
-        logger.info(f"Response status: {response.status_code}")
-
-        if response.status_code == 200:
-            result = response.json()
-            logger.info(f"Response: {json.dumps(result, indent=2)}")
-
-            return {
-                'correct': result.get('correct', False),
-                'next_url': result.get('url'),
-                'reason': result.get('reason')
+            # Fix the submit URL (this is where we fix "/submit")
+            try:
+                absolute_submit = make_absolute_submit_url(quiz_url, submit_url)
+                logger.info(f"Resolved submit URL: {absolute_submit}")
+            except Exception as e:
+                logger.error(f"Failed to resolve submit URL '{submit_url}' — {e}")
+                return None
+    
+            # Build payload
+            payload = {
+                "email": self.email,
+                "secret": self.secret,
+                "url": quiz_url,
+                "answer": answer
             }
-        else:
-            logger.error(f"Submission failed: {response.text}")
+    
+            logger.info(f"Submitting to: {absolute_submit}")
+            logger.info(f"Payload: {json.dumps(payload, indent=2)}")
+    
+            # Submit request
+            response = requests.post(
+                absolute_submit,
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=30
+            )
+    
+            logger.info(f"Response status: {response.status_code}")
+    
+            if response.status_code == 200:
+                result = response.json()
+                logger.info(f"Response: {json.dumps(result, indent=2)}")
+    
+                return {
+                    'correct': result.get('correct', False),
+                    'next_url': result.get('url'),
+                    'reason': result.get('reason')
+                }
+            else:
+                logger.error(f"Submission failed: {response.text}")
+                return None
+    
+        except Exception as e:
+            logger.error(f"Error submitting answer: {str(e)}", exc_info=True)
             return None
-
-    except Exception as e:
-        logger.error(f"Error submitting answer: {str(e)}", exc_info=True)
-        return None
     
     def _within_time_limit(self):
         """Check if we're still within the time limit"""
@@ -327,4 +327,5 @@ class QuizSolver:
         else:
             logger.warning("Time limit exceeded!")
             return False
+
 

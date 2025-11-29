@@ -19,21 +19,31 @@ class BrowserHandler:
     def initialize_driver(self):
         """Initialize headless Chrome browser"""
         try:
+            import os
+            chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+    
             chrome_options = Options()
-            chrome_options.add_argument('--headless')
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument('--window-size=1920,1080')
-            chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-            
+            chrome_options.binary_location = chrome_bin
+    
+            # Required for headless mode inside Render containers
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-extensions")
+            chrome_options.add_argument("--window-size=1920,1080")
+            chrome_options.add_argument("--remote-debugging-port=9222")
+    
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
+    
             logger.info("Chrome driver initialized successfully")
             return True
+    
         except Exception as e:
             logger.error(f"Failed to initialize Chrome driver: {str(e)}")
             return False
+
     
     def fetch_page_content(self, url, wait_time=5):
         """
@@ -120,3 +130,4 @@ class BrowserHandler:
     def __del__(self):
         """Cleanup on deletion"""
         self.close()
+

@@ -8,6 +8,8 @@ import logging
 import time
 import shutil
 import os
+from bs4 import BeautifulSoup
+from selenium.common.exceptions import TimeoutException
 
 logger = logging.getLogger(__name__)
 
@@ -100,37 +102,57 @@ class BrowserHandler:
             logger.exception("Error fetching page content")
             return None
     
-    def get_text_content(self, url, selector="#result"):
+
+    def get_text_content(self, url, selector="#result", wait_seconds=10):
         """
-        Get text content from a specific element
-        
-        Args:
-            url: URL to fetch
-            selector: CSS selector for the element
-        
-        Returns:
-            Text content of the element
+        Get text content from a specific element. Falls back to parsing page_source.
         """
         try:
             if not self.driver:
                 if not self.initialize_driver():
                     return None
-            
+    
             logger.info(f"Fetching text from {url} with selector {selector}")
             self.driver.get(url)
-            
-            # Wait for element
-            element = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, selector))
-            )
-            
-            text_content = element.text
-            logger.info("Text content extracted successfully")
-            
-            return text_content
+    
+            try:
+                element = WebDriverWait(self.driver, wait_seconds).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                )
+                text_content = element.text
+                logger.info("Text content extracted successfully (by selector)")
+                return text_content
+    
+            except TimeoutException:
+                logger.warning("Selector %s not found after %s seconds — falling back to page_source", selector, wait_seconds)
+                # Option A: try a few common fallback selectors
+                for alt in ["#result", ".result", ".content", "body"]:
+                    try:
+                        el = self.driver.find_element(By.CSS_SELECTOR, alt)
+                        logger.info("Found content with fallback selector %s", alt)
+                        return el.text
+                    except Exception:
+                        pass
+    
+                # Option B: parse page_source with BeautifulSoup
+                page = self.driver.page_source
+                soup = BeautifulSoup(page, "html.parser")
+    
+                # try to extract main text: look for main/article/div with text
+                candidates = soup.select("main, article, .content, #content, body, div")
+                for c in candidates:
+                    text = c.get_text(separator="\n", strip=True)
+                    if text and len(text) > 20:  # adjust threshold as needed
+                        logger.info("Extracted text from page_source fallback (len=%s)", len(text))
+                        return text
+    
+                logger.warning("No usable text found in fallback parsing")
+                return None
+    
         except Exception:
             logger.exception("Error getting text content")
             return None
+
     
     def close(self):
         """Close the browser"""
@@ -146,3 +168,4 @@ class BrowserHandler:
     def __del__(self):
         """Cleanup on deletion"""
         self.close()
+

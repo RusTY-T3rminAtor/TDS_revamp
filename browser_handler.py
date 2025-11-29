@@ -17,15 +17,19 @@ class BrowserHandler:
         self.driver = None
     
     def initialize_driver(self):
-        """Initialize headless Chrome browser"""
+    """Initialize headless Chrome browser using the system chromedriver."""
         try:
-            import os
+            import os, shutil
             chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+    
+            # Debug info
+            logger.info("Using system chromedriver at /usr/bin/chromedriver, CHROME_BIN=%s, which chromium=%s",
+                        chrome_bin, shutil.which("chromium") or shutil.which("chromium-browser"))
     
             chrome_options = Options()
             chrome_options.binary_location = chrome_bin
     
-            # Required for headless mode inside Render containers
+            # Headless and container-friendly flags
             chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
@@ -34,14 +38,24 @@ class BrowserHandler:
             chrome_options.add_argument("--window-size=1920,1080")
             chrome_options.add_argument("--remote-debugging-port=9222")
     
-            service = Service(ChromeDriverManager().install())
+            # Use the system-installed chromedriver binary
+            service = Service("/usr/bin/chromedriver")
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
     
-            logger.info("Chrome driver initialized successfully")
+            self.driver.set_page_load_timeout(30)
+            self.driver.implicitly_wait(5)
+    
+            logger.info("Chrome driver initialized successfully (system chromedriver)")
             return True
     
-        except Exception as e:
-            logger.error(f"Failed to initialize Chrome driver: {str(e)}")
+        except Exception:
+            logger.exception("Failed to initialize Chrome driver (system chromedriver)")
+            try:
+                if self.driver:
+                    self.driver.quit()
+            except Exception:
+                pass
+            self.driver = None
             return False
 
     
@@ -130,4 +144,5 @@ class BrowserHandler:
     def __del__(self):
         """Cleanup on deletion"""
         self.close()
+
 

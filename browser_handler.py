@@ -4,9 +4,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 import logging
 import time
+import shutil
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -17,18 +18,19 @@ class BrowserHandler:
         self.driver = None
     
     def initialize_driver(self):
-    """Initialize headless Chrome browser using the system chromedriver."""
+        """Initialize headless Chrome browser using the system chromedriver."""
         try:
-            import os, shutil
             chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
-    
+
             # Debug info
-            logger.info("Using system chromedriver at /usr/bin/chromedriver, CHROME_BIN=%s, which chromium=%s",
-                        chrome_bin, shutil.which("chromium") or shutil.which("chromium-browser"))
-    
+            logger.info(
+                "Using system chromedriver at /usr/bin/chromedriver, CHROME_BIN=%s, which chromium=%s",
+                chrome_bin, shutil.which("chromium") or shutil.which("chromium-browser")
+            )
+
             chrome_options = Options()
             chrome_options.binary_location = chrome_bin
-    
+
             # Headless and container-friendly flags
             chrome_options.add_argument("--headless=new")
             chrome_options.add_argument("--no-sandbox")
@@ -37,17 +39,18 @@ class BrowserHandler:
             chrome_options.add_argument("--disable-extensions")
             chrome_options.add_argument("--window-size=1920,1080")
             chrome_options.add_argument("--remote-debugging-port=9222")
-    
+
             # Use the system-installed chromedriver binary
             service = Service("/usr/bin/chromedriver")
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
-    
+
+            # Timeouts
             self.driver.set_page_load_timeout(30)
             self.driver.implicitly_wait(5)
-    
+
             logger.info("Chrome driver initialized successfully (system chromedriver)")
             return True
-    
+
         except Exception:
             logger.exception("Failed to initialize Chrome driver (system chromedriver)")
             try:
@@ -58,7 +61,6 @@ class BrowserHandler:
             self.driver = None
             return False
 
-    
     def fetch_page_content(self, url, wait_time=5):
         """
         Fetch content from a JavaScript-rendered page
@@ -94,8 +96,8 @@ class BrowserHandler:
             logger.info("Page content fetched successfully")
             
             return page_source
-        except Exception as e:
-            logger.error(f"Error fetching page content: {str(e)}")
+        except Exception:
+            logger.exception("Error fetching page content")
             return None
     
     def get_text_content(self, url, selector="#result"):
@@ -126,8 +128,8 @@ class BrowserHandler:
             logger.info("Text content extracted successfully")
             
             return text_content
-        except Exception as e:
-            logger.error(f"Error getting text content: {str(e)}")
+        except Exception:
+            logger.exception("Error getting text content")
             return None
     
     def close(self):
@@ -136,13 +138,11 @@ class BrowserHandler:
             try:
                 self.driver.quit()
                 logger.info("Browser closed successfully")
-            except Exception as e:
-                logger.error(f"Error closing browser: {str(e)}")
+            except Exception:
+                logger.exception("Error closing browser")
             finally:
                 self.driver = None
     
     def __del__(self):
         """Cleanup on deletion"""
         self.close()
-
-
